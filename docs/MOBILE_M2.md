@@ -112,3 +112,80 @@ M2; neither should persist sensitive records.
 - Product invariants: [ARCHITECTURE.md](ARCHITECTURE.md)
 - Security policy: [SECURITY.md](SECURITY.md)
 - Tracking: [GitHub issue #2](https://github.com/Samiiii1023/artha/issues/2)
+
+## M2a implementation checkpoint (prototype)
+
+The `apps/mobile` package contains the first **synthetic-data-only** native
+SQLCipher diagnostic, not a finance database. `expo-sqlite` is configured with
+`useSQLCipher: true` and `expo-crypto`, `expo-secure-store`, and
+`expo-dev-client` are installed for Expo SDK 58.
+
+- The More tab has a `Run encryption diagnostic` action.
+- Expo Go and web stay demo-only: the diagnostic reports that a separate native
+  build is required; neither stores financial records.
+- The native diagnostic checks `PRAGMA cipher_version` *before applying a key*,
+  generates a 32-byte random test key using native randomness, and saves it to
+  device secure storage (Keychain accessibility while unlocked, this device only).
+- It creates a **synthetic canary only**, reopens the DB with the key, and
+  confirms a new connection with the wrong key cannot read the canary.
+- The app never displays or logs the actual key. Raw key PRAGMA construction
+  rejects anything except 64 lowercase hexadecimal digits.
+- Node unit tests mock the database to verify the no-SQLCipher fail-closed
+  path, key validation, and schema-read order. These mocks **do not prove**
+  actual iOS SQLCipher behavior.
+
+### Running the smoke checks
+
+On your Arch Linux laptop:
+
+```bash
+cd ~/Projects/artha
+git switch feat/secure-storage-m2
+git pull --ff-only origin feat/secure-storage-m2
+cd apps/mobile
+fnm use 22
+npm ci
+npm run typecheck
+npm run test:storage
+npx expo install --check
+```
+
+For the ordinary demo **without encryption** (Expo Go), use:
+`npx expo start --go --tunnel --clear`. The diagnostic should say that a
+native development build is required; do not interpret Expo Go as encrypted.
+
+For a **physical iPhone custom development build**, Expo's cloud EAS build
+requires Apple Developer Program signing credentials. From Linux, follow:
+<https://docs.expo.dev/tutorial/eas/ios-development-build-for-devices/>.
+
+```bash
+cd ~/Projects/artha/apps/mobile
+npx eas-cli@latest build:configure
+npx eas-cli@latest device:create
+npx eas-cli@latest build --platform ios --profile development
+```
+
+Install the signed build on the registered iPhone using Expo's install link,
+enable Developer Mode if needed, then start the JavaScript server:
+
+```bash
+npx expo start --dev-client --tunnel --clear
+```
+
+Open the installed **Artha development app** (not Expo Go), select the
+development server and go to More → Run encryption diagnostic. Record
+only whether it passed and the SQLCipher version; never share actual keys,
+raw database files or finance records.
+
+**Important:** A Mac with Xcode can provide different local-development
+options, but a Linux machine cannot directly build/sign an iOS app locally
+with Xcode. We have not issued a native iOS binary or verified this diagnostic
+on an installed custom build yet.
+
+### What this does not accomplish
+
+No financial records, ledger schema migrations, backups, cross-device restore,
+key rotation, crash recovery, durable key-loss recovery or secure data entry
+are implemented. The test database contains only the literal
+`synthetic-test-only` canary. Do not use this proof-of-concept as a production
+encrypted store. See the verification gates above and dependency issue #3.
