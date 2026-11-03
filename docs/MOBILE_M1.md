@@ -31,3 +31,32 @@ Do not enter actual financial information into this build. There is no persisten
 - Design tokens shared across screens (`apps/mobile/src/theme`).
 - No fake connection buttons or feature claims: empty states clearly identify what is not yet implemented.
 - Independent mobile package allows M0 core CI to continue unchanged while Expo-specific dependencies are reviewed and locked separately.
+
+
+## Troubleshooting — Metro TerminalReporter export error
+
+Error on `npx expo start`:
+
+```text
+ERR_PACKAGE_PATH_NOT_EXPORTED: Package subpath './src/lib/TerminalReporter'
+is not defined by "exports" in node_modules/metro/package.json
+```
+
+Expo SDK 57 targets React Native 0.86.3 and Metro's 0.84 line. A mismatched
+Metro installation can break Expo CLI before the app starts. The mobile
+`package.json` pins the compatible `metro@0.84.6` via npm `overrides`.
+After pulling the latest M1 branch, from `apps/mobile`:
+
+```bash
+rm -rf node_modules package-lock.json .expo
+npm install
+npm ls metro @expo/cli
+npx expo install --check
+npx expo start --clear
+```
+
+Do not edit `node_modules/metro/package.json`, disable Metro exports, or
+blindly upgrade to Expo SDK 58 to work around this error. If it persists,
+capture `node -v`, `npm -v`, `npm ls metro @expo/cli`, and the full stack trace.
+Commit the generated `apps/mobile/package-lock.json` after verifying the
+dependency tree for repeatable installs.
