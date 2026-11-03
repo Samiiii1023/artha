@@ -20,7 +20,7 @@ test('32 random bytes encode as fixed-width raw key material', () => {
 
 test('raw key SQL accepts only exactly 64 lowercase hex digits', () => {
   assert.equal(rawKeyPragma(key), `PRAGMA key = "x'${key}'"`);
-  for (const invalid of ['', 'x'.repeat(64), 'a'.repeat(63), key + "'; DROP TABLE x;--', 'AB'.repeat(32)]) {
+  for (const invalid of ['', 'x'.repeat(64), 'a'.repeat(63), key + "'; DROP TABLE x;--", 'AB'.repeat(32)]) {
     assert.throws(() => rawKeyPragma(invalid), InvalidCipherKeyError);
   }
 });
