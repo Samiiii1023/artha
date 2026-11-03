@@ -15,3 +15,47 @@ jobs:
       - run: npm install --no-audit --no-fund
       - run: npm run typecheck
       - run: npm test
+  mobile-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --no-audit --no-fund
+      - name: Report production dependency vulnerabilities
+        run: |
+          npm audit --omit=dev --json > /tmp/artha-audit.json || true
+          node -e "const r=require('/tmp/artha-audit.json'); console.log('Production dependency vulnerabilities:',JSON.stringify(r.metadata?.vulnerabilities||{})); console.log('Affected packages:',Object.keys(r.vulnerabilities||{}).join(', ')||'none')"
+      - name: Verify Expo SDK 58 dependency alignment
+        run: |
+          npm ls expo expo-router react react-native
+          npx expo install --check
+      - name: Check Expo startup (not private Metro imports)
+        run: |
+          set -euo pipefail
+          CI=1 npx expo start --offline --port 8084 > /tmp/artha-expo-start.log 2>&1 &
+          expo_pid=$!
+          trap 'kill "$expo_pid" 2>/dev/null || true' EXIT
+          for i in $(seq 1 45); do
+            if curl -fsS http://127.0.0.1:8084/status 2>/dev/null | grep -q 'packager-status:running'; then
+              echo "Expo Metro server is running."
+              exit 0
+            fi
+            if ! kill -0 "$expo_pid" 2>/dev/null; then
+              cat /tmp/artha-expo-start.log
+              exit 1
+            fi
+            sleep 1
+          done
+          cat /tmp/artha-expo-start.log
+          echo "Expo server did not become ready"
+          exit 1
+      - run: npm run typecheck
+      - name: Build web bundle
+        run: npx expo export --platform web
+      - name: Build iOS JavaScript bundle
+        run: npx expo export --platform ios

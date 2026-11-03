@@ -4,7 +4,7 @@
 
 ## Status
 
-**Milestone 0: financial core foundation (not yet an installable phone app).**
+**Milestone 1: Expo SDK 58 mobile shell and financial core (prototype, not ready for financial records).**
 
 Included:
 - TypeScript financial domain engine with integer minor units for INR, KRW, USD.
@@ -12,9 +12,23 @@ Included:
 - Net worth excluding income/expense/equity accounts and using explicit dated FX rates.
 - Goal allocations with fixed amounts or percentages and checks against double allocation.
 - Node automated tests and GitHub Actions CI.
+- Expo Router iPhone prototype with Home, Accounts, Goals, Activity and More; physical iPhone launch/navigation confirmed.
+- Locked Expo SDK 58 mobile dependencies and CI checks for native/web JS bundles.
 - Architecture, privacy rules and a phased delivery roadmap.
 
-Not yet included: iPhone UI, database, authentication, backups, read-only broker/bank imports, native build, and account synchronization. We will build these in subsequent milestones, review them together and test them before using real personal financial records.
+Not yet included: encrypted database, financial record entry, authentication, backups, read-only broker/bank imports, custom native development build, and account synchronization. **The iPhone shell uses Expo Go and must never store real financial data.** We will build these in subsequent milestones, review them together and test them before using real personal financial records.
+
+## Run the mobile shell (demo only)
+
+Node.js 22, Expo Go supporting SDK 58:
+
+```bash
+cd apps/mobile
+npm ci
+npx expo start --go --tunnel --clear
+```
+
+See [docs/MOBILE_M1.md](docs/MOBILE_M1.md). The production-dependency audit has moderate-severity advisories under [security review issue #3](https://github.com/Samiiii1023/artha/issues/3).
 
 ## Run the core tests
 
