@@ -30,5 +30,24 @@ jobs:
         run: |
           npm ls metro @expo/cli
           node -e "const v = require('metro/package.json').version; if (!v.startsWith('0.84.')) throw new Error('Metro 0.84 required for Expo SDK 57, found ' + v)"
-          node -e "require('metro/src/lib/TerminalReporter')"
+      - name: Check Expo startup (not private Metro imports)
+        run: |
+          set -euo pipefail
+          CI=1 npx expo start --offline --port 8084 > /tmp/artha-expo-start.log 2>&1 &
+          expo_pid=$!
+          trap 'kill "$expo_pid" 2>/dev/null || true' EXIT
+          for i in $(seq 1 45); do
+            if curl -fsS http://127.0.0.1:8084/status 2>/dev/null | grep -q 'packager-status:running'; then
+              echo "Expo Metro server is running."
+              exit 0
+            fi
+            if ! kill -0 "$expo_pid" 2>/dev/null; then
+              cat /tmp/artha-expo-start.log
+              exit 1
+            fi
+            sleep 1
+          done
+          cat /tmp/artha-expo-start.log
+          echo "Expo server did not become ready"
+          exit 1
       - run: npm run typecheck
