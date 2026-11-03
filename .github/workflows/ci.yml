@@ -26,10 +26,10 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --no-audit --no-fund
-      - name: Check Metro compatibility with Expo CLI
+      - name: Verify Expo SDK 58 dependency alignment
         run: |
-          npm ls metro @expo/cli
-          node -e "const v = require('metro/package.json').version; if (!v.startsWith('0.84.')) throw new Error('Metro 0.84 required for Expo SDK 57, found ' + v)"
+          npm ls expo expo-router react react-native
+          npx expo install --check
       - name: Check Expo startup (not private Metro imports)
         run: |
           set -euo pipefail
@@ -53,3 +53,5 @@ jobs:
       - run: npm run typecheck
       - name: Build web bundle
         run: npx expo export --platform web
+      - name: Build iOS JavaScript bundle
+        run: npx expo export --platform ios
