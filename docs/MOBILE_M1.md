@@ -10,7 +10,7 @@ The first mobile milestone is intentionally **not** a finance-data entry app. It
 4. Open Expo Go and scan the terminal QR code.
 5. Check each tab, safe-area layout, scrolling, and accessibility labels.
 
-Expo documentation (November 2026): during SDK 58 transition, Expo Go on physical iPhones remains compatible with SDK 57; this milestone uses SDK 57 accordingly. When Expo Go moves to SDK 58, update with the official Expo migration instructions.
+Artha uses Expo SDK 58, matching the Expo Go 58.0.5 iOS app (supported SDK 58). If Expo Go supports a different SDK later, update this project using the official Expo upgrade guide, and verify the entire package set.
 
 ## Acceptance checklist
 
@@ -33,34 +33,35 @@ Do not enter actual financial information into this build. There is no persisten
 - Independent mobile package allows M0 core CI to continue unchanged while Expo-specific dependencies are reviewed and locked separately.
 
 
-## Troubleshooting — Metro TerminalReporter export error
+## Troubleshooting — native Expo Go version mismatch / app closes
 
-Error on `npx expo start`:
+Artha now targets **SDK 58** (React Native 0.88, React 19.3). Older Artha
+SDK 57 bundles were incompatible with Expo Go 58.0.5.
 
-```text
-ERR_PACKAGE_PATH_NOT_EXPORTED: Package subpath './src/lib/TerminalReporter'
-is not defined by "exports" in node_modules/metro/package.json
-```
-
-Expo SDK 57 targets React Native 0.86.3 and Metro's 0.84 line. A mismatched
-Metro installation can break Expo CLI before the app starts. The mobile
-`package.json` pins the compatible `metro@0.84.6` via npm `overrides`.
-After pulling the latest M1 branch, from `apps/mobile`:
+On your development laptop:
 
 ```bash
+cd ~/Projects/artha
+git switch feat/mobile-shell-m1
+git pull --ff-only origin feat/mobile-shell-m1
+cd apps/mobile
 rm -rf node_modules package-lock.json .expo
 npm install
-npm ls metro @expo/cli
 npx expo install --check
+npm run typecheck
 npx expo start --clear
 ```
 
-Do not edit `node_modules/metro/package.json`, disable Metro exports, or
-blindly upgrade to Expo SDK 58 to work around this error. If it persists,
-capture `node -v`, `npm -v`, `npm ls metro @expo/cli`, and the full stack trace.
-Commit the generated `apps/mobile/package-lock.json` after verifying the
-dependency tree for repeatable installs.
+The Expo CLI should report SDK 58. On your iPhone open Expo Go 58.0.5,
+scan the current QR code and inspect all tabs. If Wi-Fi blocks device-to-device
+connections, use `npx expo start --tunnel --clear` after installing/configuring
+the tunnel dependency.
 
+If Expo Go still exits, capture the device model, iOS version, and any
+terminal Metro errors. A successful web build or JS export does **not**
+guarantee that a native binary can launch.
+
+Do not manually edit internal Metro files or pin SDK 57's Metro 0.84 in SDK 58.
 
 ## Troubleshooting — white page at localhost:8081
 
