@@ -51,3 +51,5 @@ jobs:
           echo "Expo server did not become ready"
           exit 1
       - run: npm run typecheck
+      - name: Build web bundle
+        run: npx expo export --platform web
