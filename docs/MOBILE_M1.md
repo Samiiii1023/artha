@@ -14,12 +14,12 @@ Artha uses Expo SDK 58, matching the Expo Go 58.0.5 iOS app (supported SDK 58). 
 
 ## Acceptance checklist
 
-- [ ] Launches in Expo Go on a physical iPhone.
-- [ ] Home, Accounts, Goals, Activity and More tabs navigate.
-- [ ] No fabricated balances, goals or transactions appear as real data.
+- [x] Launches in Expo Go 58.0.5 on a physical iPhone (developer confirmed).
+- [x] Home, Accounts, Goals, Activity and More tabs navigate (developer confirmed).
+- [x] No fabricated balances, goals or transactions appear as real data (empty-state implementation).
 - [ ] Screens respect safe areas and remain scrollable at large text sizes.
-- [ ] `npm run typecheck` in `apps/mobile` passes after dependencies install.
-- [ ] Root financial core tests continue to pass.
+- [x] `npm run typecheck` in `apps/mobile` passes after dependencies install (GitHub CI).
+- [x] Root financial core tests continue to pass (GitHub CI).
 
 ## Security boundary
 
@@ -88,3 +88,11 @@ npx expo export --platform web
 Use `npx expo install react-dom react-native-web @expo/metro-runtime` when
 introducing or updating web support so Expo selects SDK-compatible versions.
 Do not force incompatible dependency trees with `--legacy-peer-deps`.
+
+## Reproducible install and security audit
+
+The mobile package lockfile is committed and mobile CI uses `npm ci` to prevent unreviewed transitive version drift. The GitHub workflow verifies Expo SDK alignment, TypeScript, development-server startup, and the iOS/web JavaScript exports.
+
+The latest production dependency audit reported **12 moderate, 0 high, 0 critical** advisories. Review [issue #3](https://github.com/Samiiii1023/artha/issues/3) before enabling real financial records. This shell is synthetic-data-only; on-device launch/navigation validation does not verify encryption or database security.
+
+Large-text/safe-area accessibility testing remains an outstanding polish item and should be documented during subsequent on-device reviews.
