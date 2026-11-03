@@ -25,7 +25,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: npm ci --no-audit --no-fund
+      - run: npm install --no-audit --no-fund
+      - name: Emit locked dependencies for review (temporary)
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const lock = fs.readFileSync('package-lock.json', 'utf8');
+          for (let i = 0; i < lock.length; i += 3000) {
+            console.log('ARTHA_M2_LOCK_PART:' + (i / 3000) + ':' + JSON.stringify(lock.slice(i, i + 3000)));
+          }
+          NODE
       - name: Report production dependency vulnerabilities
         run: |
           npm audit --omit=dev --json > /tmp/artha-audit.json || true
@@ -55,6 +64,7 @@ jobs:
           echo "Expo server did not become ready"
           exit 1
       - run: npm run typecheck
+      - run: npm run test:storage
       - name: Build web bundle
         run: npx expo export --platform web
       - name: Build iOS JavaScript bundle
