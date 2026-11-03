@@ -60,3 +60,30 @@ blindly upgrade to Expo SDK 58 to work around this error. If it persists,
 capture `node -v`, `npm -v`, `npm ls metro @expo/cli`, and the full stack trace.
 Commit the generated `apps/mobile/package-lock.json` after verifying the
 dependency tree for repeatable installs.
+
+
+## Troubleshooting — white page at localhost:8081
+
+A blank Chrome page with `Unable to resolve "react-native-web/dist/index"`
+means the Expo *web* bundle could not be compiled. It does not indicate a Node
+or iPhone problem. Expo Router's web target needs `react-dom`, `react-native-web`,
+and `@expo/metro-runtime`. They are now direct dependencies in
+`apps/mobile/package.json`.
+
+From the mobile directory, after pulling the updated feature branch:
+
+```bash
+npm install
+npm run typecheck
+npx expo start --clear --web
+```
+
+For web bundle verification independently of the live server:
+
+```bash
+npx expo export --platform web
+```
+
+Use `npx expo install react-dom react-native-web @expo/metro-runtime` when
+introducing or updating web support so Expo selects SDK-compatible versions.
+Do not force incompatible dependency trees with `--legacy-peer-deps`.
