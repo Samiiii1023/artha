@@ -26,6 +26,16 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --no-audit --no-fund
+      - name: Emit reviewed mobile dependency lockfile
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const lock = fs.readFileSync('package-lock.json', 'utf8');
+          const width = 3000;
+          for (let i = 0; i < lock.length; i += width) {
+            process.stdout.write('ARTHA_LOCK_PART:' + (i / width) + ':' + JSON.stringify(lock.slice(i, i + width)) + '\n');
+          }
+          NODE
       - name: Verify Expo SDK 58 dependency alignment
         run: |
           npm ls expo expo-router react react-native
