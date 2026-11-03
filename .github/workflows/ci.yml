@@ -25,17 +25,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: npm install --no-audit --no-fund
-      - name: Emit reviewed mobile dependency lockfile
+      - run: npm ci --no-audit --no-fund
+      - name: Report production dependency vulnerabilities
         run: |
-          node - <<'NODE'
-          const fs = require('fs');
-          const lock = fs.readFileSync('package-lock.json', 'utf8');
-          const width = 3000;
-          for (let i = 0; i < lock.length; i += width) {
-            process.stdout.write('ARTHA_LOCK_PART:' + (i / width) + ':' + JSON.stringify(lock.slice(i, i + width)) + '\n');
-          }
-          NODE
+          npm audit --omit=dev --json > /tmp/artha-audit.json || true
+          node -e "const r=require('/tmp/artha-audit.json'); console.log('Production dependency vulnerabilities:',JSON.stringify(r.metadata?.vulnerabilities||{})); console.log('Affected packages:',Object.keys(r.vulnerabilities||{}).join(', ')||'none')"
       - name: Verify Expo SDK 58 dependency alignment
         run: |
           npm ls expo expo-router react react-native
