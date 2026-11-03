@@ -1,0 +1,13 @@
+{
+  "expo": {
+    "name": "Artha",
+    "slug": "artha",
+    "version": "0.1.0",
+    "scheme": "artha",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "ios": { "supportsTablet": false },
+    "plugins": ["expo-router"],
+    "experiments": { "typedRoutes": true }
+  }
+}
